@@ -1,0 +1,617 @@
+🚀Part 2  アプリ1：家計簿・割り勘計算機
+
+
+✅ 3.1　プロジェクト概要とUI設計
+ 
+
+👉 フォルダ構造
+
+split-calculator/
+├── index.html    ← HTMLの骨格
+├── style.css     ← デザイン
+└── app.js        ← ロジック（JavaScriptの本体）
+
+
+
+👉 HTMLの骨格を作る
+
+📃 index.html
+-----------------------
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>家計簿・割り勘計算機</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container">
+    <h1>💰 割り勘計算機</h1>
+
+    <!-- 入力フォーム -->
+    <section class="calculator">
+      <div class="input-group">
+        <label for="total">合計金額（円）</label>
+        <input type="number" id="total" placeholder="例：5000" min="0">
+      </div>
+      <div class="input-group">
+        <label for="people">人数（人）</label>
+        <input type="number" id="people" placeholder="例：3" min="1">
+      </div>
+      <button id="calcBtn">計算する</button>
+    </section>
+
+    <!-- 計算結果 -->
+    <section class="result" id="resultSection">
+      <p class="result-label">1人あたり</p>
+      <p class="result-amount" id="resultAmount">——</p>
+      <p class="result-tax" id="resultTax"></p>
+      <p class="error-msg" id="errorMsg"></p>
+    </section>
+
+    <!-- 支出リスト -->
+    <section class="expense-section">
+      <h2>支出リスト</h2>
+      <div class="add-expense">
+        <input type="text" id="expenseName" placeholder="項目名（例：ランチ）">
+        <input type="number" id="expenseAmount" placeholder="金額">
+        <select id="expenseCategory">
+          <option value="食費">食費</option>
+          <option value="交通費">交通費</option>
+          <option value="娯楽費">娯楽費</option>
+          <option value="その他">その他</option>
+        </select>
+        <button id="addBtn">追加</button>
+      </div>
+      <ul id="expenseList"></ul>
+    </section>
+  </div>
+  <script src="app.js"></script>
+</body>
+</html>
+-----------------------
+
+
+👉 CSSの基本スタイルを当てる
+
+📃 style.css
+-----------------------
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+ 
+body {
+  font-family: 'Hiragino Sans', 'Meiryo', sans-serif;
+  background: #f0f4f8;
+  color: #1a1a1a;
+  line-height: 1.6;
+}
+ 
+.container {
+  max-width: 560px;
+  margin: 40px auto;
+  padding: 0 16px;
+}
+ 
+h1 {
+  font-size: 1.8rem;
+  margin-bottom: 24px;
+  color: #2e4057;
+}
+ 
+.calculator, .result, .expense-section {
+  background: #fff;
+  border-radius: 12px;
+  padding: 24px;
+  margin-bottom: 20px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+}
+ 
+.input-group { margin-bottom: 16px; }
+.input-group label {
+  display: block;
+  font-size: 0.85rem;
+  color: #555;
+  margin-bottom: 4px;
+}
+input[type="number"], input[type="text"], select {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  font-size: 1rem;
+}
+button {
+  width: 100%;
+  padding: 12px;
+  background: #2e4057;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  cursor: pointer;
+}
+button:hover { background: #1a2b3e; }
+ 
+.result { text-align: center; }
+.result-label { font-size: 0.9rem; color: #777; }
+.result-amount {
+  font-size: 3rem;
+  font-weight: bold;
+  color: #2e4057;
+  margin: 8px 0;
+}
+.result-tax { font-size: 0.85rem; color: #999; }
+.error-msg { color: #e74c3c; font-size: 0.9rem; margin-top: 8px; }
+-----------------------
+
+
+
+✅ 3.2　フォーム入力の取得
+
+
+👉 JavaScriptでフォームの値を読み取る
+
+ 📃 app.js 
+-----------------------
+// 要素への参照をまとめて取得する
+const totalInput   = document.querySelector('#total');
+const peopleInput  = document.querySelector('#people');
+const calcBtn      = document.querySelector('#calcBtn');
+const resultAmount = document.querySelector('#resultAmount');
+const resultTax    = document.querySelector('#resultTax');
+const errorMsg     = document.querySelector('#errorMsg');
+ 
+// ボタンをクリックしたとき
+calcBtn.addEventListener('click', () => {
+  const totalStr  = totalInput.value;   // 文字列で取得される
+  const peopleStr = peopleInput.value;
+  console.log('合計金額（文字列）:', totalStr);
+  console.log('人数（文字列）:', peopleStr);
+});
+-----------------------
+
+
+👉 inputイベント — 入力のたびにリアルタイムで反応する
+-----------------------
+// 入力するたびにコンソールに出力（動作確認用）
+totalInput.addEventListener('input', (event) => {
+  console.log('現在の入力値:', event.target.value);
+});
+-----------------------
+
+
+👉  フォームのデフォルト動作を防ぐ（preventDefault）
+-----------------------
+// form タグを使う場合の例（今回は不要、参考として）
+const form = document.querySelector('form');
+form.addEventListener('submit', (event) => {
+  event.preventDefault(); // ← これでページリロードを防ぐ
+  // ここで計算処理を行う
+});
+-----------------------
+
+
+
+✅ 3.3　文字列から数値への変換
+
+
+👉  なぜ変換が必要なのか
+-----------------------
+console.log('5000' + 3);   // → '50003'（数値の足し算ではなく文字列の結合！）
+console.log('5000' - 3);   // → 4997（引き算は自動で数値変換される）
+console.log('5000' * 3);   // → 15000（掛け算も自動変換）
+-----------------------
+
+
+👉  3つの変換方法
+-----------------------
+const input = '5000';
+ 
+// 方法1: Number() — 汎用。小数も整数も変換できる（推奨）
+const n1 = Number(input);    // → 5000
+ 
+// 方法2: parseInt() — 整数のみ。小数点以下を切り捨てる
+const n2 = parseInt(input);  // → 5000
+const n3 = parseInt('3.9');  // → 3（切り捨て）
+ 
+// 方法3: parseFloat() — 小数点ありの数値に使う
+const n4 = parseFloat('3.14'); // → 3.14
+-----------------------
+
+
+👉  NaN（Not a Number）に注意する
+-----------------------
+Number('abc');     // → NaN
+Number('');        // → 0（空文字は0になる！）
+Number('  ');      // → 0（スペースのみも0）
+parseInt('abc');   // → NaN
+ 
+// NaN のチェックは isNaN() を使う
+console.log(isNaN(Number('abc')));  // → true
+console.log(isNaN(5000));            // → false
+-----------------------
+
+
+👉  app.js に変換処理を追加する
+-----------------------
+calcBtn.addEventListener('click', () => {
+  const total  = Number(totalInput.value);   // 文字列 → 数値
+  const people = Number(peopleInput.value);  // 文字列 → 数値
+ 
+  console.log('合計金額（数値）:', total);    // → 5000
+  console.log('人数（数値）:', people);       // → 3
+  console.log('型:', typeof total);           // → 'number'
+});
+-----------------------
+
+
+
+✅ 3.4　四則演算と丸め処理
+
+
+👉  割り勘の計算ロジック
+-----------------------
+// 1人あたりの金額 = 合計 ÷ 人数
+const perPerson = total / people;
+ 
+// 例：5000円 ÷ 3人 = 1666.666...
+console.log(perPerson); // → 1666.6666666666667
+
+-----------------------
+
+
+👉  丸め処理の方法
+-----------------------
+const raw = 1666.6666;
+ 
+// Math.round() — 四捨五入（最もよく使う）
+Math.round(raw);        // → 1667
+ 
+// Math.ceil() — 切り上げ（端数は多い側が払う場合に使う）
+Math.ceil(raw);         // → 1667
+ 
+// Math.floor() — 切り捨て
+Math.floor(raw);        // → 1666
+ 
+// toFixed(n) — 小数点以下n桁で文字列として返す
+raw.toFixed(0);         // → '1667'（文字列！）
+raw.toFixed(2);         // → '1666.67'
+-----------------------
+
+
+👉  金額を3桁カンマ区切りで表示する
+-----------------------
+const amount = 15340;
+amount.toLocaleString();           // → '15,340'
+amount.toLocaleString() + '円';   // → '15,340円'
+ 
+// 割り勘で使う場合
+const perPerson = Math.round(5000 / 3); // → 1667
+console.log(perPerson.toLocaleString() + '円'); // → '1,667円'
+-----------------------
+
+
+👉  消費税の計算も追加する
+-----------------------
+const TAX_RATE = 0.10;  // 定数として定義（変更があればここだけ直す）
+ 
+calcBtn.addEventListener('click', () => {
+  const total  = Number(totalInput.value);
+  const people = Number(peopleInput.value);
+ 
+  const perPerson    = Math.round(total / people);
+  const perPersonTax = Math.round((total * (1 + TAX_RATE)) / people);
+ 
+  console.log('1人あたり（税抜）:', perPerson.toLocaleString() + '円');
+  console.log('1人あたり（税込）:', perPersonTax.toLocaleString() + '円');
+});
+-----------------------
+
+
+
+✅ 3.5　DOMの更新
+
+👉 計算結果を画面に表示する
+-----------------------
+// textContent — テキストのみを書き換える（安全・推奨）
+resultAmount.textContent = '1,667円';
+ 
+// innerHTML — HTMLタグを含む文字列を書き換える
+resultAmount.innerHTML = '<strong>1,667</strong>円';
+-----------------------
+
+
+👉 イベントリスナーを完成させる
+-----------------------
+const TAX_RATE = 0.10;
+ 
+calcBtn.addEventListener('click', () => {
+  const total  = Number(totalInput.value);
+  const people = Number(peopleInput.value);
+ 
+  // エラーチェック（3.6で詳しく実装、今は仮置き）
+  if (total <= 0 || people <= 0) {
+    errorMsg.textContent = '正しい数値を入力してください';
+    return;  // ← ここで処理を止める
+  }
+ 
+  // エラーメッセージをクリア
+  errorMsg.textContent = '';
+ 
+  // 計算
+  const perPerson    = Math.round(total / people);
+  const perPersonTax = Math.round((total * (1 + TAX_RATE)) / people);
+ 
+  // 画面に表示
+  resultAmount.textContent = perPerson.toLocaleString() + '円';
+  resultTax.textContent    = `税込 ${perPersonTax.toLocaleString()}円`;
+});
+-----------------------
+
+
+👉 スタイルをクラスで切り替える
+-----------------------
+// style.css に追加するクラス
+/*
+.result.active {
+  border: 2px solid #2e4057;
+  transform: scale(1.02);
+  transition: transform 0.2s ease;
+}
+*/
+ 
+// app.js — 計算後に active クラスを追加
+const resultSection = document.querySelector('#resultSection');
+ 
+calcBtn.addEventListener('click', () => {
+  // ... 計算処理 ...
+ 
+  resultSection.classList.add('active');   // ← 結果エリアを強調
+});
+-----------------------
+
+
+
+✅ 3.6　エラーハンドリングとバリデーション
+
+👉 バリデーション関数を作る
+-----------------------
+/**
+ * 入力値を検証する
+ * @param {number} total  - 合計金額
+ * @param {number} people - 人数
+ * @returns {string|null} - エラーメッセージ、問題なければ null
+ */
+function validate(total, people) {
+  if (totalInput.value === '' || peopleInput.value === '') {
+    return '合計金額と人数を入力してください';
+  }
+  if (isNaN(total) || isNaN(people)) {
+    return '数字を入力してください';
+  }
+  if (total < 0) {
+    return '合計金額は0以上を入力してください';
+  }
+  if (people <= 0) {
+    return '人数は1以上を入力してください';
+  }
+  return null;  // エラーなし
+}
+-----------------------
+
+
+👉  バリデーションをイベントリスナーに組み込む
+-----------------------
+calcBtn.addEventListener('click', () => {
+  const total  = Number(totalInput.value);
+  const people = Number(peopleInput.value);
+ 
+  // バリデーション
+  const errorText = validate(total, people);
+  if (errorText !== null) {
+    errorMsg.textContent = errorText;
+    resultAmount.textContent = '——';  // 前の結果をリセット
+    resultTax.textContent    = '';
+    resultSection.classList.remove('active');
+    return;
+  }
+ 
+  // バリデーション通過後の処理
+  errorMsg.textContent = '';
+ 
+  const perPerson    = Math.round(total / people);
+  const perPersonTax = Math.round((total * (1 + TAX_RATE)) / people);
+ 
+  resultAmount.textContent = perPerson.toLocaleString() + '円';
+  resultTax.textContent    = `税込 ${perPersonTax.toLocaleString()}円`;
+  resultSection.classList.add('active');
+});
+-----------------------
+
+
+
+✅ 3.7　UIのブラッシュアップ
+
+
+👉  追加ボタンのイベントリスナー
+-----------------------
+const expenseName     = document.querySelector('#expenseName');
+const expenseAmount   = document.querySelector('#expenseAmount');
+const expenseCategory = document.querySelector('#expenseCategory');
+const addBtn          = document.querySelector('#addBtn');
+const expenseList     = document.querySelector('#expenseList');
+ 
+// 支出データを配列で管理
+let expenses = [];
+ 
+addBtn.addEventListener('click', () => {
+  const name     = expenseName.value.trim();
+  const amount   = Number(expenseAmount.value);
+  const category = expenseCategory.value;
+ 
+  // 入力チェック
+  if (name === '' || isNaN(amount) || amount <= 0) {
+    alert('項目名と金額を正しく入力してください');
+    return;
+  }
+ 
+  // 支出オブジェクトを作成して配列に追加
+  const expense = {
+    id:       Date.now(),  // ミリ秒タイムスタンプで一意IDを生成
+    name,
+    amount,
+    category,
+  };
+ 
+  expenses.push(expense);
+  renderList();           // リストを再描画
+ 
+  // 入力フォームをリセット
+  expenseName.value   = '';
+  expenseAmount.value = '';
+});
+-----------------------
+
+
+👉  リストを画面に描画する関数
+-----------------------
+function renderList() {
+  // 一度全部消してから描画し直す
+  expenseList.innerHTML = '';
+ 
+  expenses.forEach((expense) => {
+    const li = document.createElement('li');
+    li.className = 'expense-item';
+    li.dataset.id = expense.id;  // 削除時に使うIDをdata属性に保存
+ 
+    li.innerHTML = `
+      <span class="category-badge">${expense.category}</span>
+      <span class="expense-name">${expense.name}</span>
+      <span class="expense-amount">${expense.amount.toLocaleString()}円</span>
+      <button class="delete-btn" data-id="${expense.id}">削除</button>
+    `;
+ 
+    expenseList.appendChild(li);
+  });
+ 
+  // 合計もあわせて更新
+  updateTotal();
+}
+-----------------------
+
+
+👉  削除機能（イベント委任パターン）
+-----------------------
+expenseList.addEventListener('click', (event) => {
+  // クリックされたのが削除ボタンかどうかを確認
+  if (!event.target.classList.contains('delete-btn')) return;
+ 
+  const id = Number(event.target.dataset.id);
+ 
+  // 該当IDを除いた新しい配列を作る（元の配列は変更しない）
+  expenses = expenses.filter(e => e.id !== id);
+  renderList();
+});
+-----------------------
+
+
+👉  支出合計を自動計算する
+-----------------------
+function updateTotal() {
+  const total = expenses.reduce((acc, e) => acc + e.amount, 0);
+ 
+  // 合計金額フィールドに自動入力
+  totalInput.value = total;
+ 
+  // 人数が入力されていれば計算も自動更新
+  const people = Number(peopleInput.value);
+  if (people > 0) {
+    const perPerson    = Math.round(total / people);
+    const perPersonTax = Math.round((total * (1 + TAX_RATE)) / people);
+    resultAmount.textContent = perPerson.toLocaleString() + '円';
+    resultTax.textContent    = `税込 ${perPersonTax.toLocaleString()}円`;
+    resultSection.classList.add('active');
+  }
+}
+-----------------------
+
+
+👉  CSSトランジションでアニメーションを追加する
+-----------------------
+/* style.css に追加 */
+.expense-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid #eee;
+  animation: slideIn 0.25s ease;  /* ← 追加されたときのアニメーション */
+}
+ 
+@keyframes slideIn {
+  from { opacity: 0; transform: translateY(-8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+ 
+.category-badge {
+  background: #2e4057;
+  color: #fff;
+  border-radius: 4px;
+  padding: 2px 8px;
+  font-size: 0.75rem;
+  white-space: nowrap;
+}
+ 
+.delete-btn {
+  width: auto;
+  margin-left: auto;
+  padding: 4px 10px;
+  background: #e74c3c;
+  font-size: 0.8rem;
+}
+-----------------------
+
+
+👉  レスポンシブレイアウトの基本
+-----------------------
+/* style.css に追加 */
+@media (max-width: 480px) {
+  .container { margin: 16px auto; }
+  h1 { font-size: 1.4rem; }
+  .result-amount { font-size: 2.2rem; }
+  .add-expense {
+    display: flex;
+    flex-direction: column;  /* 縦並びに切り替える */
+    gap: 8px;
+  }
+}
+-----------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

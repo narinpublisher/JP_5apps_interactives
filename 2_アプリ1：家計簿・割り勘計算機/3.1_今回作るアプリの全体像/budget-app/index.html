@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  >
+
+  <title>
+    家計簿・割り勘計算機
+  </title>
+
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+  <div class="container">
+
+    <h1>
+      家計簿・割り勘計算機
+    </h1>
+
+    <div class="form-group">
+
+      <label>
+        合計金額
+      </label>
+
+      <input
+        type="number"
+        id="totalAmount"
+        placeholder="例：5000"
+      >
+
+    </div>
+
+    <div class="form-group">
+
+      <label>
+        人数
+      </label>
+
+      <input
+        type="number"
+        id="peopleCount"
+        placeholder="例：4"
+      >
+
+    </div>
+
+    <button id="calcButton">
+      計算する
+    </button>
+
+    <div class="result-box">
+
+      <p>
+        1人あたり
+      </p>
+
+      <h2 id="result">
+        ¥0
+      </h2>
+
+    </div>
+
+    <div class="expense-list">
+
+      <h3>
+        支出リスト
+      </h3>
+
+      <ul>
+
+        <li>食費：3000円</li>
+        <li>交通費：2000円</li>
+
+      </ul>
+
+    </div>
+
+  </div>
+
+  <script src="script.js"></script>
+
+</body>
+</html>

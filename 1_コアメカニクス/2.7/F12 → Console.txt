@@ -1,0 +1,48 @@
+// =========================
+// テンプレートリテラル
+// =========================
+
+const name = '田中';
+const amount = 1500;
+
+const msg =
+  `名前：${name}、支払い金額：${amount}円`;
+
+console.log(msg);
+
+console.log(
+  `税込み：${(amount * 1.1).toFixed(0)}円`
+);
+
+
+// =========================
+// 文字列メソッド
+// =========================
+
+const input = '  東京都  ';
+
+console.log(input.trim());
+
+console.log(
+  input.includes('東京')
+);
+
+console.log(
+  input.startsWith('  東')
+);
+
+console.log(
+  input.replace('東京', '大阪')
+);
+
+console.log(
+  '東京,大阪,名古屋'.split(',')
+);
+
+console.log(
+  (1234567).toLocaleString()
+);
+
+console.log(
+  (1500.6).toFixed(0)
+);

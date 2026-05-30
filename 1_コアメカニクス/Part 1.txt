@@ -1,0 +1,434 @@
+🚀 Part 1
+コアメカニクス
+
+——必要なことだけ学ぶ
+p.9〜36　全7セクション
+
+
+
+
+✅ 2.1　変数とスコープ
+
+👉 変数とは「データに名前をつけること」
+-------------------
+const appName = '実践JavaScriptエンジニア入門';
+const maxScore = 100;
+ 
+// 変更しようとするとエラーになる
+// appName = '別のタイトル'; // ← TypeError: Assignment to constant variable.
+-------------------
+
+`let` は値を後から変更できる変数です。
+-------------------
+let score = 0;        // 最初は0点
+score = score + 10;   // 10点加算
+score += 5;           // さらに5点加算（省略記法）
+console.log(score);   // → 15
+-------------------
+
+ブロックスコープ — 変数の「生きている範囲」
+-------------------
+if (true) {
+  const message = 'ブロックの中です';
+  console.log(message); // → ブロックの中です
+}
+// console.log(message); // ← ReferenceError: message is not defined
+// ブロックの外では message は存在しない
+-------------------
+
+
+
+✅ 2.2　関数とアロー構文
+
+👉 関数とは「処理をまとめた部品」
+-------------------
+// 関数の定義
+function greet(name) {
+  return 'こんにちは、' + name + 'さん！';
+}
+ 
+// 関数の呼び出し
+console.log(greet('田中'));  // → こんにちは、田中さん！
+console.log(greet('鈴木'));  // → こんにちは、鈴木さん！
+-------------------
+
+ES2015以降
+-------------------
+// 通常の関数
+function double(n) {
+  return n * 2;
+}
+ 
+// アロー関数（完全版）
+const double = (n) => {
+  return n * 2;
+};
+ 
+// アロー関数（省略版 — 処理が1行のとき return も {} も省ける）
+const double = n => n * 2;
+ 
+console.log(double(5));  // → 10
+-------------------
+
+
+👉 コールバック関数 — 「あとで呼ぶ」関数
+-------------------
+// addEventListener の第2引数がコールバック関数
+const button = document.getElementById('myButton');
+ 
+button.addEventListener('click', function() {
+  console.log('ボタンがクリックされました！');
+});
+ 
+// アロー関数で書くとすっきりする
+button.addEventListener('click', () => {
+  console.log('ボタンがクリックされました！');
+});
+-------------------
+
+
+👉 クロージャ — 外の変数を「覚える」関数
+-------------------
+function makeCounter() {
+  let count = 0;              // この変数をクロージャが覚える
+  return function() {
+    count += 1;
+    return count;
+  };
+}
+ 
+const counter = makeCounter();
+console.log(counter());  // → 1
+console.log(counter());  // → 2
+console.log(counter());  // → 3
+-------------------
+
+
+✅  2.3　配列とオブジェクト
+
+
+👉 配列 — 「順番のあるリスト」
+-------------------
+// 配列の作成
+const fruits = ['りんご', 'みかん', 'バナナ'];
+ 
+// 要素へのアクセス（インデックスは0から始まる）
+console.log(fruits[0]);  // → りんご
+console.log(fruits[2]);  // → バナナ
+ 
+// 要素の追加（末尾に追加）
+fruits.push('いちご');
+console.log(fruits);  // → ['りんご', 'みかん', 'バナナ', 'いちご']
+ 
+// 要素の削除（インデックス1から1個削除）
+fruits.splice(1, 1);
+console.log(fruits);  // → ['りんご', 'バナナ', 'いちご']
+ 
+// 配列の長さ
+console.log(fruits.length);  // → 3
+-------------------
+
+
+👉 オブジェクト — 「名前付きのデータの集合」
+-------------------
+// オブジェクトの作成
+const expense = {
+  id: 1,
+  category: '食費',
+  amount: 1500,
+  date: '2025-06-01',
+  memo: 'ランチ代',
+};
+ 
+// プロパティへのアクセス
+console.log(expense.category);   // → 食費
+console.log(expense['amount']);  // → 1500
+ 
+// プロパティの追加・変更
+expense.paid = true;   // 新しいプロパティを追加
+expense.amount = 1800; // 既存のプロパティを変更
+-------------------
+
+
+👉 分割代入 — 必要な値だけ取り出す
+-------------------
+// 配列の分割代入
+const [first, second] = ['田中', '鈴木', '佐藤'];
+console.log(first);   // → 田中
+console.log(second);  // → 鈴木
+ 
+// オブジェクトの分割代入
+const { category, amount } = expense;
+console.log(category);  // → 食費
+console.log(amount);    // → 1800
+-------------------
+
+👉 スプレッド演算子（...）— 配列・オブジェクトを「展開」する
+-------------------
+// 配列のコピーと要素追加
+const original = [1, 2, 3];
+const added    = [...original, 4, 5];
+console.log(added);    // → [1, 2, 3, 4, 5]
+console.log(original); // → [1, 2, 3]（元は変わらない）
+ 
+// オブジェクトのコピーとプロパティ上書き
+const base    = { color: 'blue', size: 'M' };
+const updated = { ...base, color: 'red' };  // colorだけ上書き
+console.log(updated); // → { color: 'red', size: 'M' }
+-------------------
+
+
+
+✅ 2.4　配列メソッド
+
+
+👉 map() — 全要素を「変換」する
+-------------------
+const prices = [100, 200, 300, 400];
+ 
+// 全価格を1.1倍（税込みに変換）
+const withTax = prices.map(price => price * 1.1);
+console.log(withTax);  // → [110, 220, 330, 440]
+ 
+// オブジェクト配列から特定のプロパティだけ抽出
+const expenses = [
+  { category: '食費',   amount: 1500 },
+  { category: '交通費', amount: 800  },
+  { category: '娯楽費', amount: 3000 },
+];
+const amounts = expenses.map(e => e.amount);
+console.log(amounts);  // → [1500, 800, 3000]
+-------------------
+
+
+👉 filter() — 条件に合う要素だけ「絞り込む」
+-------------------
+const expenses = [
+  { category: '食費',   amount: 1500 },
+  { category: '交通費', amount: 800  },
+  { category: '娯楽費', amount: 3000 },
+  { category: '食費',   amount: 2200 },
+];
+ 
+// 食費だけ絞り込む
+const foodExpenses = expenses.filter(e => e.category === '食費');
+console.log(foodExpenses.length);  // → 2
+ 
+// 1000円以上の支出だけ
+const bigExpenses = expenses.filter(e => e.amount >= 1000);
+console.log(bigExpenses.length);   // → 3
+-------------------
+
+
+👉reduce() — 配列を「ひとつの値に集約」する
+-------------------
+const amounts = [1500, 800, 3000, 2200];
+ 
+// 合計を求める
+const total = amounts.reduce((acc, current) => acc + current, 0);
+// 処理の流れ：0 + 1500 = 1500
+//             1500 + 800 = 2300
+//             2300 + 3000 = 5300
+//             5300 + 2200 = 7500
+console.log(total);  // → 7500
+-------------------
+
+
+👉find() — 条件に合う「最初の1件」を取り出す
+-------------------
+const tasks = [
+  { id: 1, title: '企画書作成', done: false },
+  { id: 2, title: 'ミーティング', done: true  },
+  { id: 3, title: 'コードレビュー', done: false },
+];
+ 
+// id が 2 のタスクを探す
+const task = tasks.find(t => t.id === 2);
+console.log(task.title);  // → ミーティング
+ 
+// 見つからなければ undefined を返す
+const missing = tasks.find(t => t.id === 99);
+console.log(missing);  // → undefined
+-------------------
+
+
+
+✅ 2.5　DOM操作
+
+
+👉 要素の選択
+-------------------
+// 1件だけ取得（CSSセレクタで指定）
+const button  = document.querySelector('#myButton');  // IDで取得
+const input   = document.querySelector('.price-input'); // クラスで取得
+const heading = document.querySelector('h1');          // タグで取得
+ 
+// 複数件取得（NodeListで返る）
+const items = document.querySelectorAll('.list-item');
+items.forEach(item => console.log(item.textContent));
+-------------------
+
+
+👉 イベントリスナー — 「操作を待ち受ける」
+-------------------
+const button = document.querySelector('#calcButton');
+ 
+button.addEventListener('click', () => {
+  console.log('計算ボタンがクリックされました');
+});
+ 
+// input イベント：テキストボックスの内容が変わるたびに発火
+const priceInput = document.querySelector('#price');
+priceInput.addEventListener('input', (event) => {
+  console.log('現在の入力値：', event.target.value);
+});
+-------------------
+
+
+👉 UI更新 — 画面に反映する
+-------------------
+const resultEl = document.querySelector('#result');
+ 
+// テキストだけ変える（安全・推奨）
+resultEl.textContent = '合計：1,500円';
+ 
+// HTMLとして挿入する（XSSに注意して使う）
+resultEl.innerHTML = '<strong>合計：</strong>1,500円';
+ 
+// クラスを追加・削除してスタイルを切り替える
+resultEl.classList.add('highlight');    // クラスを追加
+resultEl.classList.remove('highlight'); // クラスを削除
+resultEl.classList.toggle('active');    // 有無を切り替え
+-------------------
+
+
+
+✅ 2.6　テンプレートリテラルと文字列メソッド
+
+
+👉 テンプレートリテラル — 文字列の中に変数を埋め込む
+-------------------
+const name   = '田中';
+const amount = 1500;
+ 
+// 従来の書き方（読みにくい）
+const msg1 = '名前：' + name + '、支払い金額：' + amount + '円';
+ 
+// テンプレートリテラル（読みやすい）
+const msg2 = `名前：${name}、支払い金額：${amount}円`;
+ 
+// 式も書ける
+const msg3 = `税込み：${amount * 1.1}円`;
+console.log(msg3);  // → 税込み：1650円
+ 
+// 複数行も書ける
+const html = `
+  <li class="expense-item">
+    <span>${name}</span>
+    <span>${amount}円</span>
+  </li>
+`;
+-------------------
+
+
+👉 頻出文字列メソッド
+-------------------
+const input = '  東京都  ';
+ 
+input.trim();               // → '東京都'（前後の空白を除去）
+input.includes('東京');     // → true（部分一致を確認）
+input.startsWith('  東');   // → true（先頭一致）
+input.replace('東京', '大阪'); // → '  大阪都  '（置換）
+'東京,大阪,名古屋'.split(','); // → ['東京', '大阪', '名古屋']（分割）
+(1234567).toLocaleString(); // → '1,234,567'（3桁カンマ区切り）
+(1500.6).toFixed(0);        // → '1501'（小数点以下を丸める）
+-------------------
+
+
+
+✅ 2.7　条件分岐とループ
+
+
+👉 if / else — 条件によって処理を分岐する
+-------------------
+const score = 75;
+ 
+if (score >= 90) {
+  console.log('優秀');
+} else if (score >= 70) {
+  console.log('良好');  // → このルートが実行される
+} else {
+  console.log('要復習');
+}
+-------------------
+
+
+👉 三項演算子 — 短い条件分岐
+-------------------
+const isLoggedIn = true;
+const label = isLoggedIn ? 'ログアウト' : 'ログイン';
+console.log(label);  // → ログアウト
+ 
+// テンプレートリテラルと組み合わせる
+const amount = 0;
+console.log(`支出：${amount > 0 ? amount + '円' : 'なし'}`);  // → 支出：なし
+-------------------
+
+
+👉 forEach — 配列の各要素を処理する（推奨）
+-------------------
+const expenses = ['食費:1500', '交通費:800', '娯楽費:3000'];
+ 
+expenses.forEach((expense, index) => {
+  console.log(`${index + 1}. ${expense}`);
+});
+// → 1. 食費:1500
+// → 2. 交通費:800
+// → 3. 娯楽費:3000
+-------------------
+
+
+👉 for ループ — インデックスが必要なとき
+-------------------
+// 0〜4 まで5回ループ
+for (let i = 0; i < 5; i++) {
+  console.log(`${i}回目`);
+}
+ 
+// 配列を逆順に処理したいときなど
+const arr = ['a', 'b', 'c'];
+for (let i = arr.length - 1; i >= 0; i--) {
+  console.log(arr[i]);  // → c, b, a
+}
+-------------------
+
+
+👉 while — 回数が不定のとき
+-------------------
+let count = 0;
+while (count < 3) {
+  console.log(`カウント：${count}`);
+  count++;
+}
+// → カウント：0
+// → カウント：1
+// → カウント：2
+-------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

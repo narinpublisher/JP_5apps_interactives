@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  >
+
+  <title>
+    リアルタイム天気ダッシュボード
+  </title>
+
+  <link
+    rel="stylesheet"
+    href="style.css"
+  >
+</head>
+
+<body>
+
+  <div class="container">
+
+    <!-- ===================== -->
+    <!-- ヘッダー -->
+    <!-- ===================== -->
+
+    <header>
+
+      <h1>
+        🌤 リアルタイム天気ダッシュボード
+      </h1>
+
+    </header>
+
+
+    <!-- ===================== -->
+    <!-- 検索フォーム -->
+    <!-- ===================== -->
+
+    <div class="search-bar">
+
+      <input
+        type="text"
+        id="searchInput"
+        placeholder="都市名を入力（例: Tokyo, Osaka）"
+      >
+
+      <button id="searchBtn">
+        検索
+      </button>
+
+    </div>
+
+
+    <!-- ===================== -->
+    <!-- エラーメッセージ -->
+    <!-- ===================== -->
+
+    <p
+      class="error-msg"
+      id="errorMsg"
+    ></p>
+
+
+    <!-- ===================== -->
+    <!-- ローディングスピナー -->
+    <!-- ===================== -->
+
+    <div
+      class="spinner hidden"
+      id="spinner"
+    ></div>
+
+
+    <!-- ===================== -->
+    <!-- 天気カード -->
+    <!-- ===================== -->
+
+    <div
+      class="weather-card hidden"
+      id="weatherCard"
+    >
+
+      <!-- メイン情報 -->
+
+      <div class="weather-main">
+
+        <img
+          id="weatherIcon"
+          src="https://openweathermap.org/img/wn/01d@2x.png"
+          alt="天気アイコン"
+        >
+
+        <div>
+
+          <h2 id="cityName"></h2>
+
+          <p
+            id="temperature"
+            class="temp-big"
+          ></p>
+
+          <p id="description"></p>
+
+        </div>
+
+      </div>
+
+
+      <!-- 詳細情報 -->
+
+      <div class="weather-details">
+
+        <div class="detail-item">
+
+          <span>🌡</span>
+
+          <span id="feelsLike"></span>
+
+        </div>
+
+
+        <div class="detail-item">
+
+          <span>💧</span>
+
+          <span id="humidity"></span>
+
+        </div>
+
+
+        <div class="detail-item">
+
+          <span>💨</span>
+
+          <span id="windSpeed"></span>
+
+        </div>
+
+
+        <div class="detail-item">
+
+          <span>📊</span>
+
+          <span id="tempRange"></span>
+
+        </div>
+
+      </div>
+
+    </div>
+
+
+    <!-- ===================== -->
+    <!-- 非同期ログ -->
+    <!-- ===================== -->
+
+    <div class="log-panel">
+
+      <h3>
+        非同期ログ
+      </h3>
+
+      <ul id="logList"></ul>
+
+    </div>
+
+  </div>
+
+
+  <script src="app.js"></script>
+
+</body>
+</html>

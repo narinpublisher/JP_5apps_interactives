@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  />
+
+  <title>家計管理・支出トラッカー</title>
+
+  <link rel="stylesheet" href="style.css" />
+</head>
+
+<body>
+
+  <div class="container">
+
+    <h1>💰 家計管理・支出トラッカー</h1>
+
+    <!-- 支出追加フォーム -->
+    <section class="expense-form">
+
+      <div class="input-group">
+        <label>項目名</label>
+
+        <input
+          type="text"
+          id="expenseName"
+          placeholder="例：ランチ"
+        />
+      </div>
+
+      <div class="input-group">
+        <label>金額</label>
+
+        <input
+          type="number"
+          id="expenseAmount"
+          placeholder="例：1200"
+        />
+      </div>
+
+      <div class="input-group">
+        <label>カテゴリ</label>
+
+        <select id="expenseCategory">
+          <option value="食費">食費</option>
+          <option value="交通費">交通費</option>
+          <option value="娯楽費">娯楽費</option>
+          <option value="その他">その他</option>
+        </select>
+      </div>
+
+      <div class="input-group">
+        <label>日付</label>
+
+        <input
+          type="date"
+          id="expenseDate"
+        />
+      </div>
+
+      <button id="addBtn">
+        追加する
+      </button>
+
+    </section>
+
+
+    <!-- 支出一覧 -->
+    <section class="expense-list-section">
+
+      <h2>支出一覧</h2>
+
+      <ul id="expenseList"></ul>
+
+    </section>
+
+
+    <!-- 集計 -->
+    <section class="summary-section">
+
+      <h2>月間合計</h2>
+
+      <p id="totalAmount">0円</p>
+
+    </section>
+
+  </div>
+
+  <script src="app.js"></script>
+
+</body>
+</html>

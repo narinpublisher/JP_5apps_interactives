@@ -1,0 +1,562 @@
+🚀 実践JavaScriptエンジニア入門
+
+🎯 Part 5：アプリ4 — 暗記カード学習アプリ（英単語・資格対策）.. 全7セクション
+
+
+✅  6.1　状態管理の概念
+
+
+👉 「状態（ステート）」とは何か
+-------------------
+// ❌ 状態を使わない書き方（アンチパターン）
+document.querySelector('#counter').textContent++;  // 直接書き換え
+// ← 現在の値がいくつかをJavaScriptは把握していない
+
+// ⭕ 状態を使う書き方（正しいパターン）
+let currentIndex = 0;   // ← これが「状態」
+
+function nextCard() {
+  currentIndex++;        // 1. まず状態を変える
+  render();             // 2. 状態をもとに画面を描き直す
+}
+
+function render() {
+  // currentIndex という「唯一の情報源」だけを見て画面を描く
+  document.querySelector('#cardNum').textContent = currentIndex + 1;
+}
+-------------------
+
+
+👉 状態オブジェクトをまとめて管理する
+-------------------
+// app.js の先頭に書く「アプリ全体の状態」
+const state = {
+  cards: [],           // カードデータの配列（後で設定）
+  currentIndex: 0,     // 今表示しているカードの番号（0始まり）
+  isFlipped: false,    // カードが裏返っているか
+  correctCount: 0,     // 正解した枚数
+  incorrectCount: 0,   // 不正解だった枚数
+};
+
+// 状態を変えるときは必ずこの形で書く
+function nextCard() {
+  state.isFlipped = false;          // カードを表に戻す
+  state.currentIndex++;             // 次のカードへ
+  render();                         // 画面を再描画
+}
+-------------------
+
+
+
+✅  6.2　問題データ構造
+
+
+👉 カードデータをオブジェクト配列で定義する
+-------------------
+// cards.js（またはapp.jsの先頭に書いてもOK）
+const cardData = [
+  {
+    id: 1,
+    front: 'implement',          // カード表面（英単語）
+    back: '実装する・導入する',   // 裏面（日本語訳）
+    example: 'We need to implement this feature by Friday.',
+    category: '動詞',
+  },
+  {
+    id: 2,
+    front: 'refactor',
+    back: 'リファクタリングする',
+    example: 'Let's refactor this code to make it cleaner.',
+    category: '動詞',
+  },
+  {
+    id: 3,
+    front: 'deprecated',
+    back: '非推奨の・廃止予定の',
+    example: 'This method is deprecated. Use the new API instead.',
+    category: '形容詞',
+  },
+  // 以降、同じ形式でカードを追加していく
+];
+-------------------
+
+
+👉 Fisher-Yatesシャッフルアルゴリズム
+-------------------
+// Fisher-Yatesシャッフル
+// 配列の末尾から先頭に向かって、ランダムな位置の要素と入れ替えていく
+function shuffleArray(array) {
+  // 元の配列を壊さないようにコピーを作る
+  const shuffled = [...array];
+
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    // 0以上i以下のランダムな整数を生成
+    const randomIndex = Math.floor(Math.random() * (i + 1));
+
+    // shuffled[i] と shuffled[randomIndex] を入れ替える
+    [shuffled[i], shuffled[randomIndex]] = [shuffled[randomIndex], shuffled[i]];
+  }
+
+  return shuffled;
+}
+
+// 使い方
+function startQuiz() {
+  state.cards = shuffleArray(cardData);  // シャッフルして状態にセット
+  state.currentIndex = 0;
+  state.correctCount = 0;
+  state.incorrectCount = 0;
+  state.isFlipped = false;
+  render();
+}
+-------------------
+
+
+
+✅  6.3　現在のカードの表示
+
+
+👉 インデックスで「今のカード」を管理する
+-------------------
+// render()関数：状態をもとに画面を描く
+function render() {
+  const card = state.cards[state.currentIndex];  // 今のカードを取得
+
+  // カード番号の表示（例: 3 / 10）
+  document.querySelector('#cardCounter').textContent =
+    `${state.currentIndex + 1} / ${state.cards.length}`;
+
+  // カードの表面・裏面の内容をセット
+  document.querySelector('#cardFront').textContent = card.front;
+  document.querySelector('#cardBack').textContent  = card.back;
+  document.querySelector('#cardExample').textContent = card.example;
+  document.querySelector('#cardCategory').textContent = card.category;
+
+  // カードの向きをリセット（次のカードは常に表面から）
+  if (!state.isFlipped) {
+    document.querySelector('#flashcard').classList.remove('flipped');
+  }
+
+  // ボタンの状態を更新
+  document.querySelector('#prevBtn').disabled = state.currentIndex === 0;
+  document.querySelector('#nextBtn').disabled =
+    state.currentIndex === state.cards.length - 1;
+}
+-------------------
+
+
+👉 前のカード・次のカードへの移動
+-------------------
+function goNext() {
+  if (state.currentIndex < state.cards.length - 1) {
+    state.currentIndex++;
+    state.isFlipped = false;   // カードを表に戻す
+    render();
+  }
+}
+
+function goPrev() {
+  if (state.currentIndex > 0) {
+    state.currentIndex--;
+    state.isFlipped = false;
+    render();
+  }
+}
+
+// ボタンにイベントを登録
+document.querySelector('#nextBtn').addEventListener('click', goNext);
+document.querySelector('#prevBtn').addEventListener('click', goPrev);
+
+
+// キーボード操作にも対応（→キーで次へ、←キーで前へ）
+document.addEventListener('keydown', (event) => {
+  if (event.key === 'ArrowRight') goNext();
+  if (event.key === 'ArrowLeft')  goPrev();
+  if (event.key === ' ')          flipCard();  // スペースキーでめくる
+});
+-------------------
+
+
+
+✅  6.4　スコアと進捗の追跡
+
+
+👉 正解・不正解ボタンで状態を更新する
+-------------------
+function markCorrect() {
+  state.correctCount++;
+  state.currentIndex++;
+  state.isFlipped = false;
+
+  if (state.currentIndex >= state.cards.length) {
+    showResult();   // 全カード終了 → 結果画面へ
+  } else {
+    render();
+  }
+}
+
+function markIncorrect() {
+  state.incorrectCount++;
+  state.currentIndex++;
+  state.isFlipped = false;
+
+  if (state.currentIndex >= state.cards.length) {
+    showResult();
+  } else {
+    render();
+  }
+}
+
+document.querySelector('#correctBtn').addEventListener('click', markCorrect);
+document.querySelector('#incorrectBtn').addEventListener('click', markIncorrect);
+-------------------
+
+
+👉 プログレスバーのロジック
+-------------------
+// render()の中にプログレスバー更新を追加する
+function updateProgressBar() {
+  const total    = state.cards.length;
+  const done     = state.correctCount + state.incorrectCount;
+  const percent  = Math.round((done / total) * 100);
+
+  // CSSのwidthを変更してバーを伸ばす
+  document.querySelector('#progressBar').style.width = `${percent}%`;
+
+  // バーの色を進捗に応じて変える
+  const bar = document.querySelector('#progressBar');
+  if (percent < 40) {
+    bar.style.backgroundColor = '#e74c3c';  // 赤（序盤）
+  } else if (percent < 70) {
+    bar.style.backgroundColor = '#f39c12';  // 黄（中盤）
+  } else {
+    bar.style.backgroundColor = '#27ae60';  // 緑（終盤）
+  }
+
+  // 正解数・不正解数の表示も更新
+  document.querySelector('#scoreCorrect').textContent   = state.correctCount;
+  document.querySelector('#scoreIncorrect').textContent = state.incorrectCount;
+}
+-------------------
+
+
+👉 プログレスバーのCSSはシンプルです：
+-------------------
+/* style.css */
+.progress-container {
+  width: 100%;
+  height: 10px;
+  background-color: #eee;
+  border-radius: 5px;
+  margin: 12px 0;
+  overflow: hidden;       /* バーがはみ出ないようにする */
+}
+
+.progress-bar {
+  height: 100%;
+  width: 0%;              /* JavaScriptで動的に変更 */
+  border-radius: 5px;
+  background-color: #e74c3c;
+  transition: width 0.4s ease, background-color 0.6s ease;  /* アニメーション */
+}
+-------------------
+
+
+
+✅  6.5　アニメーション用CSSクラス切り替え
+
+
+👉 classList の使い方を理解する
+-------------------
+const element = document.querySelector('#flashcard');
+
+// クラスを追加する
+element.classList.add('flipped');
+
+// クラスを削除する
+element.classList.remove('flipped');
+
+// クラスがあれば削除、なければ追加（トグル）
+element.classList.toggle('flipped');
+
+// クラスが付いているか確認する（trueかfalseが返る）
+const hasClass = element.classList.contains('flipped');
+console.log(hasClass);  // true または false
+-------------------
+
+
+👉 CSSトランジションと組み合わせる
+-------------------
+/* style.css */
+
+/* 通常状態 */
+.button {
+  background-color: #2e4057;
+  transform: scale(1);
+  opacity: 1;
+  transition: background-color 0.2s ease,
+              transform 0.15s ease,
+              opacity 0.2s ease;
+}
+
+/* .active クラスが付いたときのスタイル */
+.button.active {
+  background-color: #27ae60;
+  transform: scale(1.05);
+}
+
+/* .disabled クラスが付いたときのスタイル */
+.button.disabled {
+  opacity: 0.4;
+  pointer-events: none;  /* クリックを無効化 */
+}
+-------------------
+
+-------------------
+// app.js
+
+// ✅ 良い書き方：クラスを切り替えてCSSに任せる
+function setButtonActive(button, isActive) {
+  button.classList.toggle('active', isActive);
+    // toggle(className, force) の第2引数がtrueなら追加、falseなら削除
+}
+
+// ❌ 悪い書き方：JavaScriptでスタイルを直接変える
+function setButtonActiveBAD(button, isActive) {
+  if (isActive) {
+    button.style.backgroundColor = '#27ae60';   // 管理が煩雑になる
+    button.style.transform = 'scale(1.05)';
+  } else {
+    button.style.backgroundColor = '#2e4057';
+    button.style.transform = 'scale(1)';
+  }
+}
+-------------------
+
+
+
+✅  6.6　カードめくりエフェクト
+
+👉 CSS 3Dカードめくりの仕組み
+-------------------
+<!-- HTML構造 -->
+<div class="card-scene">         <!-- 視点（perspective）を持つ親 -->
+  <div class="flashcard" id="flashcard">   <!-- 回転する本体 -->
+    <div class="card-face card-front">     <!-- 表面 -->
+      <p id="cardFront"></p>
+    </div>
+    <div class="card-face card-back">      <!-- 裏面 -->
+      <p id="cardBack"></p>
+      <p id="cardExample"></p>
+    </div>
+  </div>
+</div>
+-------------------
+
+-------------------
+/* style.css：3Dカードめくりの核心部分 */
+
+/* 1. 視点の距離を設定する（数値が小さいほど3D感が強い） */
+.card-scene {
+  perspective: 1000px;
+}
+
+/* 2. カード本体：裏表を同時に持てるように transform-style を設定 */
+.flashcard {
+  width: 100%;
+  height: 280px;
+  position: relative;
+  transform-style: preserve-3d;    /* ← これが3D効果の鍵 */
+  transition: transform 0.6s ease;
+  cursor: pointer;
+}
+
+/* 3. .flipped クラスが付いたら180度回転する */
+.flashcard.flipped {
+  transform: rotateY(180deg);
+}
+
+/* 4. 表と裏を重ねる共通設定 */
+.card-face {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  backface-visibility: hidden;  /* ← 裏から見えないようにする */
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 32px;
+}
+
+/* 5. 表面のスタイル */
+.card-front {
+  background: #ffffff;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.12);
+}
+
+/* 6. 裏面はあらかじめ180度回転させておく */
+.card-back {
+  background: #2e4057;
+  color: #ffffff;
+  transform: rotateY(180deg);   /* ← 最初から裏返した状態で配置 */
+  box-shadow: 0 4px 20px rgba(0,0,0,0.25);
+}
+-------------------
+
+
+👉 JavaScriptでカードをめくる
+-------------------
+// カードをめくる関数
+function flipCard() {
+  state.isFlipped = !state.isFlipped;  // 状態を反転
+
+  const flashcard = document.querySelector('#flashcard');
+  flashcard.classList.toggle('flipped', state.isFlipped);
+
+  // 裏面になったら「わかった」「もう一度」ボタンを表示
+  const answerBtns = document.querySelector('#answerButtons');
+  answerBtns.classList.toggle('hidden', !state.isFlipped);
+}
+
+// カードクリックでめくれるようにする
+document.querySelector('#flashcard').addEventListener('click', flipCard);
+-------------------
+
+
+
+✅  6.7　クイズ結果画面
+
+
+👉 結果画面を表示する
+-------------------
+function showResult() {
+  const total       = state.cards.length;
+  const correct     = state.correctCount;
+  const incorrect   = state.incorrectCount;
+  const percentage  = Math.round((correct / total) * 100);
+
+  // 結果メッセージを選ぶ
+  let message = '';
+  if (percentage === 100) {
+    message = '🎉 パーフェクト！全問正解です！';
+  } else if (percentage >= 80) {
+    message = '👏 素晴らしい！あと少しで完璧です！';
+  } else if (percentage >= 50) {
+    message = '💪 半分以上正解！もう一度挑戦してみましょう。';
+  } else {
+    message = '📚 まだ伸びしろがたくさんあります。復習しましょう！';
+  }
+
+  // 結果をDOMに書き込む
+  document.querySelector('#resultMessage').textContent  = message;
+  document.querySelector('#resultPercent').textContent  = `正解率: ${percentage}%`;
+  document.querySelector('#resultCorrect').textContent  = `正解: ${correct}問`;
+  document.querySelector('#resultIncorrect').textContent = `不正解: ${incorrect}問`;
+
+  // カード画面を隠して結果画面を表示
+  document.querySelector('#quizArea').classList.add('hidden');
+  document.querySelector('#resultArea').classList.remove('hidden');
+}
+-------------------
+
+👉 リスタート機能を実装する
+-------------------
+function restartQuiz() {
+  // 状態をすべてリセット
+  state.currentIndex   = 0;
+  state.correctCount   = 0;
+  state.incorrectCount = 0;
+  state.isFlipped      = false;
+  state.cards          = shuffleArray(cardData);   // 再シャッフル
+
+  // 結果画面を隠してカード画面を表示
+  document.querySelector('#resultArea').classList.add('hidden');
+  document.querySelector('#quizArea').classList.remove('hidden');
+
+  // 画面を再描画
+  render();
+  updateProgressBar();
+}
+
+document.querySelector('#restartBtn').addEventListener('click', restartQuiz);
+
+// ─── アプリの起動 ───────────
+// ページ読み込み時にクイズをスタートする
+window.addEventListener('load', () => {
+  startQuiz();
+});
+-------------------
+
+
+👉 完成したHTMLの全体構造
+-------------------
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>暗記カード学習アプリ</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>🗂 暗記カード</h1>
+      <!-- プログレスバー -->
+      <div class="progress-container">
+        <div class="progress-bar" id="progressBar"></div>
+      </div>
+      <div class="score-display">
+        <span>✅ 正解: <strong id="scoreCorrect">0</strong></span>
+        <span>❌ もう一度: <strong id="scoreIncorrect">0</strong></span>
+      </div>
+    </header>
+
+    <!-- クイズエリア -->
+    <div id="quizArea">
+      <p id="cardCounter" class="card-counter"></p>
+
+      <!-- 3Dカード -->
+      <div class="card-scene">
+        <div class="flashcard" id="flashcard">
+          <div class="card-face card-front">
+            <span id="cardCategory" class="category-tag"></span>
+            <p id="cardFront" class="card-word"></p>
+            <p class="tap-hint">タップしてめくる</p>
+          </div>
+          <div class="card-face card-back">
+            <p id="cardBack" class="card-meaning"></p>
+            <p id="cardExample" class="card-example"></p>
+          </div>
+        </div>
+      </div>
+
+      <!-- 回答ボタン（裏面表示時のみ表示） -->
+      <div id="answerButtons" class="answer-buttons hidden">
+        <button id="incorrectBtn" class="btn btn-incorrect">❌ もう一度</button>
+        <button id="correctBtn"   class="btn btn-correct">✅ わかった</button>
+      </div>
+
+      <!-- ナビゲーションボタン -->
+      <div class="nav-buttons">
+        <button id="prevBtn" class="btn btn-nav">◀ 前へ</button>
+        <button id="nextBtn" class="btn btn-nav">次へ ▶</button>
+      </div>
+    </div>
+
+    <!-- 結果画面 -->
+    <div id="resultArea" class="hidden">
+      <p id="resultMessage"  class="result-message"></p>
+      <p id="resultPercent"  class="result-percent"></p>
+      <p id="resultCorrect"></p>
+      <p id="resultIncorrect"></p>
+      <button id="restartBtn" class="btn btn-primary">🔄 もう一度挑戦</button>
+    </div>
+  </div>
+  <script src="cards.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
+-------------------

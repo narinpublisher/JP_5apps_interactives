@@ -1,0 +1,187 @@
+/* ========================================
+   Reset
+======================================== */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+
+/* ========================================
+   Base Layout
+======================================== */
+
+body {
+    font-family: sans-serif;
+    background: #e9edf2;
+    min-height: 100vh;
+}
+
+.app-wrapper {
+    width: 100%;
+}
+
+.app-header {
+    padding: 20px;
+    text-align: center;
+}
+
+.app-header h1 {
+    color: #2e4057;
+    font-size: 32px;
+}
+
+
+/* ========================================
+   Board
+======================================== */
+
+.board {
+    display: flex;
+    gap: 20px;
+    padding: 24px;
+    align-items: flex-start;
+    min-height: calc(100vh - 80px);
+    overflow-x: auto;
+}
+
+
+/* ========================================
+   Column
+======================================== */
+
+.column {
+    background: #f0f2f5;
+    border-radius: 12px;
+    padding: 16px;
+    width: 300px;
+    flex-shrink: 0;
+    min-height: 200px;
+}
+
+.column-title {
+    font-weight: bold;
+    font-size: 16px;
+    margin-bottom: 12px;
+    color: #2e4057;
+}
+
+
+/* ========================================
+   Card List
+======================================== */
+
+.card-list {
+    min-height: 60px;
+    border-radius: 8px;
+    transition:
+        background-color 0.2s ease,
+        border-color 0.2s ease;
+}
+
+
+/* ドロップ先ハイライト */
+
+.card-list.drag-over {
+    background: #e3f2fd;
+}
+
+
+/* ========================================
+   Card
+======================================== */
+
+.kanban-card {
+    background: #ffffff;
+    border-radius: 8px;
+    padding: 12px 14px;
+    margin-bottom: 10px;
+
+    box-shadow:
+        0 2px 8px rgba(0, 0, 0, 0.08);
+
+    cursor: grab;
+
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+
+    transition:
+        box-shadow 0.2s ease,
+        opacity 0.2s ease;
+}
+
+.kanban-card:hover {
+    box-shadow:
+        0 4px 16px rgba(0, 0, 0, 0.15);
+}
+
+
+/* ドラッグ中 */
+
+.kanban-card.dragging {
+    opacity: 0.4;
+}
+
+
+/* ========================================
+   Delete Button
+======================================== */
+
+.delete-btn {
+    border: none;
+    background: transparent;
+    cursor: pointer;
+
+    color: #90a4ae;
+
+    font-size: 16px;
+    font-weight: bold;
+
+    margin-left: 8px;
+
+    transition:
+        color 0.2s ease,
+        transform 0.2s ease;
+}
+
+.delete-btn:hover {
+    color: #e53935;
+    transform: scale(1.1);
+}
+
+
+/* ========================================
+   Add Card Button
+======================================== */
+
+.add-card-btn {
+    width: 100%;
+    padding: 8px;
+
+    background: transparent;
+
+    border: 2px dashed #b0bec5;
+    border-radius: 8px;
+
+    color: #78909c;
+
+    cursor: pointer;
+
+    margin-top: 8px;
+
+    font-size: 14px;
+
+    transition:
+        background 0.2s ease,
+        border-color 0.2s ease,
+        color 0.2s ease;
+}
+
+.add-card-btn:hover {
+    background: #e3f2fd;
+    border-color: #2e4057;
+    color: #2e4057;
+}

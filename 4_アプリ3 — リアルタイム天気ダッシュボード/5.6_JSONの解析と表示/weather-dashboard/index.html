@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+
+  <meta charset="UTF-8" />
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  />
+
+  <title>
+    リアルタイム天気ダッシュボード
+  </title>
+
+  <link
+    rel="stylesheet"
+    href="style.css"
+  />
+
+</head>
+
+<body>
+
+  <div class="container">
+
+    <!-- =========================
+         タイトル
+    ========================== -->
+
+    <h1>
+      ☀️ リアルタイム天気ダッシュボード
+    </h1>
+
+
+    <!-- =========================
+         検索フォーム
+    ========================== -->
+
+    <div class="search-box">
+
+      <input
+        type="text"
+        id="cityInput"
+        placeholder="都市名を入力"
+        value="Tokyo"
+      />
+
+      <button id="searchBtn">
+
+        天気を取得
+
+      </button>
+
+    </div>
+
+
+    <!-- =========================
+         天気カード
+    ========================== -->
+
+    <div class="weather-card">
+
+      <h2 id="cityName">
+        Tokyo, JP
+      </h2>
+
+      <img
+        id="weatherIcon"
+        src="https://openweathermap.org/img/wn/01d@2x.png"
+        alt="weather icon"
+      >
+
+      <p id="temperature">
+        22°C
+      </p>
+
+      <p id="description">
+        快晴
+      </p>
+
+      <div class="weather-details">
+
+        <p id="feelsLike">
+          体感 21°C
+        </p>
+
+        <p id="humidity">
+          湿度 65%
+        </p>
+
+        <p id="windSpeed">
+          風速 3.5m/s
+        </p>
+
+        <p id="tempRange">
+          最高 25°C / 最低 19°C
+        </p>
+
+      </div>
+
+    </div>
+
+
+    <!-- =========================
+         非同期ログ
+    ========================== -->
+
+    <div class="log-panel">
+
+      <h3>
+        非同期ログ
+      </h3>
+
+      <ul id="logList">
+
+      </ul>
+
+    </div>
+
+  </div>
+
+
+  <!-- =========================
+       JavaScript
+  ========================== -->
+
+  <script src="app.js"></script>
+
+</body>
+</html>

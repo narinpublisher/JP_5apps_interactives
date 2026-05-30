@@ -1,0 +1,671 @@
+🚀  実践JavaScriptエンジニア入門
+
+🎯  Part 6：アプリ5 — タスク管理カンバンボード .. 全7セクション
+
+
+
+✅  7.1　プロジェクトアーキテクチャ
+
+
+👉  カンバンボードのデータ構造を設計する
+------------------------
+// ボード全体の状態をオブジェクトで管理する
+const boardState = {
+  columns: {
+    'todo': {
+      id: 'todo',
+      title: '📋 To Do',
+      cards: [
+        { id: 'card-1', text: 'ランディングページのデザイン修正' },
+        { id: 'card-2', text: 'ユーザーテストの準備' },
+        { id: 'card-3', text: 'APIドキュメントを読む' },
+      ]
+    },
+    'doing': {
+      id: 'doing',
+      title: '🔄 進行中',
+      cards: [
+        { id: 'card-4', text: 'ログイン機能の実装' },
+      ]
+    },
+    'done': {
+      id: 'done',
+      title: '✅ 完了',
+      cards: [
+        { id: 'card-5', text: 'プロジェクトキックオフMTG' },
+      ]
+    }
+  },
+  // カラムの表示順を管理する（オブジェクトのキー順は保証されないため）
+  columnOrder: ['todo', 'doing', 'done']
+};
+------------------------
+
+
+👉  一意なIDを生成する
+------------------------
+// タイムスタンプ＋乱数で一意なIDを生成する
+function generateId(prefix = 'card') {
+  return `${prefix}-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+}
+
+// 使い方
+const newCard = {
+  id: generateId('card'),   // 例: "card-1748123456789-342"
+  text: 'タスク内容をここに入力'
+};
+------------------------
+
+
+👉  フォルダ構造とファイル分割
+* Part 6のプロジェクトは以下のファイル構成で作ります：
+------------------------
+kanban-board/
+├── index.html       ← ボードのHTML構造
+├── style.css        ← カラム・カード・ドラッグのスタイル
+└── app.js           ← ボード全体のロジック（状態管理・DnD・localStorage）
+------------------------
+
+
+
+✅  7.2　ボードUIの構築
+
+
+👉  HTMLの骨格を作る
+* JavaScriptでカードを動的に生成するため、HTMLはカラムの「入れ物」だけ用意します：
+------------------------
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>タスク管理カンバンボード</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="app-wrapper">
+    <header class="app-header">
+      <h1>🗂 タスクボード</h1>
+    </header>
+
+    <!-- ボード本体（3カラムをここにJSで描画する） -->
+    <main class="board" id="board">
+      <!-- JavaScriptが .column 要素を動的に追加する -->
+    </main>
+  </div>
+  <script src="app.js"></script>
+</body>
+</html>
+------------------------
+
+
+👉  CSSでカラムとカードをレイアウトする
+------------------------
+/* style.css */
+
+/* ボード全体：3カラムを横並びにする */
+.board {
+  display: flex;
+  gap: 20px;
+  padding: 24px;
+  align-items: flex-start;   /* カラムの高さをそろえない（中身次第で伸びる）*/
+  min-height: calc(100vh - 80px);
+}
+
+/* 各カラム */
+.column {
+  background: #f0f2f5;
+  border-radius: 12px;
+  padding: 16px;
+  width: 300px;
+  flex-shrink: 0;             /* ウィンドウが狭くなっても縮まない */
+  min-height: 200px;
+}
+
+.column-title {
+  font-weight: bold;
+  font-size: 16px;
+  margin-bottom: 12px;
+  color: #2e4057;
+}
+
+/* カード一覧エリア（ドロップ対象） */
+.card-list {
+  min-height: 60px;           /* カードが0枚でもドロップできる高さを確保 */
+}
+
+/* 各カード */
+.kanban-card {
+  background: #ffffff;
+  border-radius: 8px;
+  padding: 12px 14px;
+  margin-bottom: 10px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  cursor: grab;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  transition: box-shadow 0.2s ease, opacity 0.2s ease;
+}
+
+.kanban-card:hover {
+  box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+}
+
+/* カード追加ボタン */
+.add-card-btn {
+  width: 100%;
+  padding: 8px;
+  background: transparent;
+  border: 2px dashed #b0bec5;
+  border-radius: 8px;
+  color: #78909c;
+  cursor: pointer;
+  margin-top: 8px;
+  font-size: 14px;
+  transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+.add-card-btn:hover {
+  background: #e3f2fd;
+  border-color: #2e4057;
+  color: #2e4057;
+}
+------------------------
+
+
+👉  JavaScriptでボードを描画する
+* boardStateをもとに、カラムとカードをまとめてDOMに描画するrender()関数を作ります：
+------------------------
+// app.js
+
+function render() {
+  const board = document.querySelector('#board');
+  board.innerHTML = '';   // いったん全部消してから描き直す
+
+
+  boardState.columnOrder.forEach(columnId => {
+    const column = boardState.columns[columnId];
+    const columnEl = createColumnElement(column);
+    board.appendChild(columnEl);
+  });
+}
+
+function createColumnElement(column) {
+  // カラム要素を作る
+  const columnEl = document.createElement('div');
+  columnEl.className = 'column';
+  columnEl.dataset.columnId = column.id;
+
+  // タイトル
+  const titleEl = document.createElement('h2');
+  titleEl.className = 'column-title';
+  titleEl.textContent = `${column.title} (${column.cards.length})`;
+  columnEl.appendChild(titleEl);
+
+  // カードリスト（ドロップ対象エリア）
+  const cardListEl = document.createElement('div');
+  cardListEl.className = 'card-list';
+  cardListEl.dataset.columnId = column.id;
+
+  // 各カードを追加
+  column.cards.forEach(card => {
+    const cardEl = createCardElement(card, column.id);
+    cardListEl.appendChild(cardEl);
+  });
+
+  columnEl.appendChild(cardListEl);
+
+  // 「＋ カードを追加」ボタン
+  const addBtn = document.createElement('button');
+  addBtn.className = 'add-card-btn';
+  addBtn.textContent = '＋ カードを追加';
+  addBtn.addEventListener('click', () => openAddCardForm(column.id));
+  columnEl.appendChild(addBtn);
+
+  return columnEl;
+}
+
+// ページ読み込み時に描画
+window.addEventListener('load', () => { render(); });
+------------------------
+
+
+
+✅  7.3　ドラッグ&ドロップAPI
+
+
+👉  HTML Drag and Drop APIの基本を理解する
+* ブラウザにはドラッグ&ドロップを実現するための専用APIが組み込まれています。使うイベントは主に3つです：
+------------------------
+// ドラッグ&ドロップの最小構成
+
+// ── ドラッグ元（カード）──
+element.draggable = true;   // HTMLのdraggable属性を有効にする
+
+element.addEventListener('dragstart', (event) => {
+  // dataTransferに「何をドラッグしているか」を記録する
+  event.dataTransfer.setData('text/plain', cardId);
+  event.dataTransfer.effectAllowed = 'move';
+});
+
+// ── ドロップ先（カードリスト）──
+dropZone.addEventListener('dragover', (event) => {
+  event.preventDefault();   // ← これを書かないとdropイベントが発火しない！
+  event.dataTransfer.dropEffect = 'move';
+});
+
+dropZone.addEventListener('drop', (event) => {
+  event.preventDefault();
+  const cardId = event.dataTransfer.getData('text/plain');  // カードIDを取得
+  // カードを移動する処理を呼ぶ（7.4で実装）
+  moveCard(cardId, dropZone.dataset.columnId);
+});
+------------------------
+
+
+👉  カード要素にドラッグイベントを設定する
+* createCardElement() 関数にドラッグイベントを追加します：
+------------------------
+function createCardElement(card, columnId) {
+  const cardEl = document.createElement('div');
+  cardEl.className = 'kanban-card';
+  cardEl.dataset.cardId = card.id;
+  cardEl.draggable = true;           // ドラッグ可能にする
+
+  // カードのテキスト
+  const textEl = document.createElement('span');
+  textEl.textContent = card.text;
+  cardEl.appendChild(textEl);
+
+  // 削除ボタン（7.7で詳しく実装）
+  const deleteBtn = document.createElement('button');
+  deleteBtn.className = 'delete-btn';
+  deleteBtn.textContent = '×';
+  deleteBtn.addEventListener('click', (e) => {
+    e.stopPropagation();   // カード自体のクリックに伝播させない
+    deleteCard(card.id, columnId);
+  });
+  cardEl.appendChild(deleteBtn);
+
+  // ── dragstart：ドラッグ開始時 ──
+  cardEl.addEventListener('dragstart', (event) => {
+    event.dataTransfer.setData('cardId', card.id);
+    event.dataTransfer.setData('sourceColumnId', columnId);
+    event.dataTransfer.effectAllowed = 'move';
+
+    // ドラッグ中は半透明にする（視覚フィードバック）
+    setTimeout(() => cardEl.classList.add('dragging'), 0);
+  });
+
+  // ── dragend：ドラッグ終了時（成功・キャンセル問わず）──
+  cardEl.addEventListener('dragend', () => {
+    cardEl.classList.remove('dragging');
+  });
+
+  return cardEl;
+}
+------------------------
+
+
+
+✅  7.4　カラム間のカード移動
+
+
+👉  moveCard()関数を実装する
+------------------------
+function moveCard(cardId, sourceColumnId, targetColumnId) {
+  // 同じカラムにドロップした場合は何もしない
+  if (sourceColumnId === targetColumnId) return;
+
+  // 1. ドラッグ元のカラムからカードを取り出す
+  const sourceCards  = boardState.columns[sourceColumnId].cards;
+  const cardIndex    = sourceCards.findIndex(c => c.id === cardId);
+  if (cardIndex === -1) return;           // カードが見つからない場合は中断
+
+  const [movedCard]  = sourceCards.splice(cardIndex, 1);  // 配列から取り除く
+
+  // 2. ドロップ先のカラムにカードを追加する
+  boardState.columns[targetColumnId].cards.push(movedCard);
+
+  // 3. localStorageに保存する（7.5・7.6で実装）
+  saveToStorage();
+
+  // 4. 画面を再描画する
+  render();
+}
+
+// カードリスト（ドロップゾーン）にイベントを設定する関数
+function setupDropZone(cardListEl, columnId) {
+  cardListEl.addEventListener('dragover', (event) => {
+    event.preventDefault();
+    event.dataTransfer.dropEffect = 'move';
+    cardListEl.classList.add('drag-over');     // ドロップ可能エリアを強調
+  });
+
+  cardListEl.addEventListener('dragleave', () => {
+    cardListEl.classList.remove('drag-over');  // カーソルが離れたら元に戻す
+  });
+
+  cardListEl.addEventListener('drop', (event) => {
+    event.preventDefault();
+    cardListEl.classList.remove('drag-over');
+
+
+    const cardId         = event.dataTransfer.getData('cardId');
+    const sourceColumnId = event.dataTransfer.getData('sourceColumnId');
+    moveCard(cardId, sourceColumnId, columnId);
+  });
+}
+------------------------
+
+
+👉  ドラッグ中の視覚フィードバックをCSSで追加する
+------------------------
+/* style.css：ドラッグ中のビジュアルフィードバック */
+
+/* ドラッグ中のカード：半透明にして「浮いている」感を出す */
+.kanban-card.dragging {
+  opacity: 0.4;
+  cursor: grabbing;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+}
+
+/* ドロップ可能なエリアをハイライトする */
+.card-list.drag-over {
+  background-color: #e3f2fd;
+  border-radius: 8px;
+  outline: 2px dashed #2e4057;
+  outline-offset: -2px;
+}
+
+/* ドロップ先カラム全体を強調する */
+.column.drag-over-column {
+  background: #dce8f5;
+}
+------------------------
+
+
+
+✅  7.5　LocalStorageの基礎
+
+
+👉  localStorageとは何か
+------------------------
+// localStorageの基本操作
+
+// ── 書き込む ──
+localStorage.setItem('キー名', '保存したい値（文字列）');
+
+// ── 読み込む ──
+const value = localStorage.getItem('キー名');
+// キーが存在しない場合は null が返る
+
+// ── 削除する ──
+localStorage.removeItem('キー名');
+
+// ── 全削除する ──
+localStorage.clear();
+------------------------
+
+
+👉  オブジェクトをlocalStorageに保存する
+------------------------
+// ❌ そのままでは保存できない
+localStorage.setItem('board', boardState);    // "[object Object]" として保存されてしまう
+
+// ✅ JSON.stringify()で文字列に変換してから保存する
+localStorage.setItem('board', JSON.stringify(boardState));
+
+// ✅ 読み込むときはJSON.parse()で元のオブジェクトに戻す
+const saved = localStorage.getItem('board');
+if (saved) {
+  const restoredState = JSON.parse(saved);
+  console.log(restoredState.columns.todo.cards); // 元の配列が戻ってくる
+}
+
+// ── よくある落とし穴 ──
+// JSON.stringify/parse はDate・関数・undefinedを正しく変換できない
+const obj = {
+  date: new Date(),          // 文字列になる（Dateオブジェクトに戻らない）
+  fn: () => 'hello',        // 消える（関数はJSONに変換できない）
+};
+const str   = JSON.stringify(obj);
+const back  = JSON.parse(str);
+console.log(typeof back.date); // "string"（Dateではない）
+console.log(back.fn);          // undefined
+------------------------
+
+
+
+✅  7.6　ボード状態の永続化
+
+
+👉  保存・読み込み関数を実装する
+------------------------
+const STORAGE_KEY = 'kanban-board-v1';  // バージョンをキー名に含める
+
+// ── 保存する ───────
+function saveToStorage() {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(boardState));
+  } catch (e) {
+    // storageが満杯などでエラーになることがある
+    console.error('保存に失敗しました:', e);
+  }
+}
+
+// ── 読み込む ─────────
+function loadFromStorage() {
+  try {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (!saved) return false;          // データがなければ初期状態を使う
+
+    const parsed = JSON.parse(saved);
+
+    // 読み込んだデータでboardStateを上書きする
+    boardState.columns     = parsed.columns;
+    boardState.columnOrder = parsed.columnOrder;
+    return true;
+
+  } catch (e) {
+    console.error('読み込みに失敗しました:', e);
+    return false;
+  }
+}
+
+// ── ページ読み込み時の処理 ──────
+window.addEventListener('load', () => {
+  loadFromStorage();   // まず保存データを読み込む
+  render();            // 状態をもとに描画する
+});
+------------------------
+
+
+👉  保存するタイミングを決める
+------------------------
+// ── 1. カード移動後 ──
+function moveCard(cardId, sourceColumnId, targetColumnId) {
+  // ...（省略）
+  saveToStorage();   // ← ここ
+  render();
+}
+
+// ── 2. カード追加後（7.7で実装） ──
+function addCard(columnId, text) {
+  // ...（省略）
+  saveToStorage();   // ← ここ
+  render();
+}
+
+// ── 3. カード削除後（7.7で実装） ──
+function deleteCard(cardId, columnId) {
+  // ...（省略）
+  saveToStorage();   // ← ここ
+  render();
+}
+------------------------
+
+
+👉  データ構造が変わったときのバージョン管理
+------------------------
+// v1からv2にデータ構造が変わった場合
+const STORAGE_KEY = 'kanban-board-v2';   // キーを変えるだけで古いv1データは自動的に使われなくなる
+
+// 必要であれば古いデータを明示的に削除する
+function clearOldStorage() {
+  localStorage.removeItem('kanban-board-v1');
+}
+------------------------
+
+
+
+✅  7.7　カードの追加と削除
+
+
+👉  カード追加フォームを実装する
+------------------------
+function openAddCardForm(columnId) {
+  // すでにフォームが開いていれば閉じる
+  const existingForm = document.querySelector('.add-card-form');
+  if (existingForm) existingForm.remove();
+
+  // フォームを作る
+  const form = document.createElement('div');
+  form.className = 'add-card-form';
+
+  const textarea = document.createElement('textarea');
+  textarea.placeholder = 'タスクを入力してください...';
+  textarea.className = 'add-card-textarea';
+  textarea.rows = 3;
+  form.appendChild(textarea);
+
+  const buttonsDiv = document.createElement('div');
+  buttonsDiv.className = 'form-buttons';
+
+  // 追加ボタン
+  const confirmBtn = document.createElement('button');
+  confirmBtn.textContent = '追加';
+  confirmBtn.className = 'btn-confirm';
+  confirmBtn.addEventListener('click', () => {
+    const text = textarea.value.trim();
+    if (text) {
+      addCard(columnId, text);
+    }
+  });
+
+  // キャンセルボタン
+  const cancelBtn = document.createElement('button');
+  cancelBtn.textContent = 'キャンセル';
+  cancelBtn.className = 'btn-cancel';
+  cancelBtn.addEventListener('click', () => {
+    form.remove();
+  });
+
+  buttonsDiv.appendChild(confirmBtn);
+  buttonsDiv.appendChild(cancelBtn);
+  form.appendChild(buttonsDiv);
+
+  // 対象カラムの下にフォームを追加する
+  const columnEl = document.querySelector(`[data-column-id="${columnId}"]`);
+  columnEl.appendChild(form);
+  textarea.focus();   // フォームを開いたらすぐ入力できる状態にする
+}
+
+function addCard(columnId, text) {
+  const newCard = {
+    id: generateId('card'),
+    text: text
+  };
+  boardState.columns[columnId].cards.push(newCard);
+  saveToStorage();
+  render();
+}
+------------------------
+
+
+👉  削除前の確認ダイアログを実装する
+------------------------
+function deleteCard(cardId, columnId) {
+  // confirm()はOKを押すとtrue、キャンセルを押すとfalseを返す
+  const confirmed = window.confirm('このカードを削除しますか？');
+  if (!confirmed) return;
+
+  // 対象カラムのcardsからcardIdが一致する要素を除外する
+  boardState.columns[columnId].cards =
+    boardState.columns[columnId].cards.filter(c => c.id !== cardId);
+
+  saveToStorage();
+  render();
+}
+------------------------
+
+
+👉  フォームのCSSを追加する
+------------------------
+/* style.css：カード追加フォームのスタイル */
+
+.add-card-form {
+  margin-top: 8px;
+}
+
+.add-card-textarea {
+  width: 100%;
+  border: 1px solid #b0bec5;
+  border-radius: 6px;
+  padding: 8px;
+  font-size: 14px;
+  font-family: inherit;
+  resize: none;
+  box-sizing: border-box;
+}
+
+.add-card-textarea:focus {
+  outline: none;
+  border-color: #2e4057;
+  box-shadow: 0 0 0 2px rgba(46,64,87,0.15);
+}
+
+.form-buttons {
+  display: flex;
+  gap: 8px;
+  margin-top: 6px;
+}
+
+.btn-confirm {
+  background: #2e4057;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 6px 16px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.btn-cancel {
+  background: transparent;
+  border: 1px solid #b0bec5;
+  border-radius: 6px;
+  padding: 6px 12px;
+  cursor: pointer;
+  font-size: 14px;
+  color: #78909c;
+}
+
+/* 削除ボタン（カード右上の×） */
+.delete-btn {
+  background: none;
+  border: none;
+  color: #b0bec5;
+  font-size: 16px;
+  cursor: pointer;
+  padding: 0 4px;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.delete-btn:hover {
+  color: #e74c3c;
+}
+------------------------
+

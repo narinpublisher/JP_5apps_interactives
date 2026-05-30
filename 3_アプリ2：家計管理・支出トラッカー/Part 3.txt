@@ -1,0 +1,530 @@
+🚀  Part 3   アプリ2：家計管理・支出トラッカー
+
+
+✅  4.1　プロジェクト概要とデータモデル設計
+
+
+📁 フォルダ構造
+
+expense-tracker/
+├── index.html
+├── style.css
+└── app.js
+
+
+👉 データモデルを設計する
+-----------------------
+// 支出1件のデータ構造（スキーマ）
+const expenseSchema = {
+  id:       1748000000000,   // Date.now() で生成する一意ID（ミリ秒）
+  name:     'ランチ代',        // 項目名（文字列）
+  amount:   1500,             // 金額（数値・整数）
+  category: '食費',           // カテゴリ（文字列）
+  date:     '2025-06-01',     // 日付（ISO形式文字列）
+};
+-----------------------
+
+
+👉 HTMLの骨格を作る
+
+📃 index.html
+-----------------------
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>家計管理・支出トラッカー</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>📊 家計管理トラッカー</h1>
+    </header>
+
+    <!-- 支出追加フォーム -->
+    <section class="add-section">
+      <h2>支出を追加</h2>
+      <div class="form-row">
+        <input type="text"   id="expName"     placeholder="項目名（例：ランチ代）">
+        <input type="number" id="expAmount"   placeholder="金額" min="0">
+        <select id="expCategory">
+          <option value="食費">食費</option>
+          <option value="交通費">交通費</option>
+          <option value="娯楽費">娯楽費</option>
+          <option value="その他">その他</option>
+        </select>
+        <input type="date" id="expDate">
+        <button id="addBtn">追加</button>
+      </div>
+      <p class="error-msg" id="errorMsg"></p>
+    </section>
+
+    <!-- フィルター -->
+    <div class="filter-bar">
+      <button class="filter-btn active" data-filter="all">すべて</button>
+      <button class="filter-btn" data-filter="食費">食費</button>
+      <button class="filter-btn" data-filter="交通費">交通費</button>
+      <button class="filter-btn" data-filter="娯楽費">娯楽費</button>
+      <button class="filter-btn" data-filter="その他">その他</button>
+    </div>
+
+    <!-- メインコンテンツ（2カラム） -->
+    <div class="main-grid">
+      <!-- 支出リスト -->
+      <section class="list-section">
+        <h2>支出一覧 <span id="listCount"></span></h2>
+        <ul id="expenseList"></ul>
+      </section>
+
+
+      <!-- 集計パネル -->
+      <section class="summary-section">
+        <h2>集計</h2>
+        <div class="total-box">
+          <p class="total-label">月間合計</p>
+          <p class="total-amount" id="totalAmount">0円</p>
+        </div>
+        <div id="categoryBars"></div>
+      </section>
+    </div>
+  </div>
+  <script src="app.js"></script>
+</body>
+</html>
+-----------------------
+
+
+
+✅  4.2　オブジェクトによるデータモデリング
+
+👉 app.js の全体構造を把握する
+-----------------------
+// ============================================
+// 1. 状態（アプリが管理するデータ）
+// ============================================
+let expenses      = [];     // 全支出データ
+let currentFilter = 'all'; // 現在のフィルター
+ 
+// ============================================
+// 2. DOM参照（一度だけ取得してまとめる）
+// ============================================
+const expName     = document.querySelector('#expName');
+const expAmount   = document.querySelector('#expAmount');
+const expCategory = document.querySelector('#expCategory');
+const expDate     = document.querySelector('#expDate');
+const addBtn      = document.querySelector('#addBtn');
+const errorMsg    = document.querySelector('#errorMsg');
+const expenseList = document.querySelector('#expenseList');
+const listCount   = document.querySelector('#listCount');
+const totalAmount = document.querySelector('#totalAmount');
+const categoryBars= document.querySelector('#categoryBars');
+ 
+// ============================================
+// 3. 関数（後のセクションで順番に実装）
+// ============================================
+ 
+// ============================================
+// 4. イベントリスナー
+// ============================================
+ 
+// ============================================
+// 5. 初期化（ページ読み込み時に実行）
+// ============================================
+setDefaultDate();  // 今日の日付をデフォルトにセット
+render();          // 初期レンダリング
+-----------------------
+
+
+👉 今日の日付をデフォルト値にセットする
+-----------------------
+function setDefaultDate() {
+  const today = new Date();
+  // YYYY-MM-DD 形式に変換（input[type=date] が要求する形式）
+  const yyyy = today.getFullYear();
+  const mm   = String(today.getMonth() + 1).padStart(2, '0'); // 月は0始まり
+  const dd   = String(today.getDate()).padStart(2, '0');
+  expDate.value = `${yyyy}-${mm}-${dd}`;
+}
+-----------------------
+
+
+👉 支出オブジェクトを生成して配列に追加する
+-----------------------
+function addExpense() {
+  const name     = expName.value.trim();
+  const amount   = Number(expAmount.value);
+  const category = expCategory.value;
+  const date     = expDate.value;
+ 
+  // バリデーション
+  if (name === '') {
+    showError('項目名を入力してください');
+    return;
+  }
+  if (isNaN(amount) || amount <= 0) {
+    showError('正しい金額を入力してください');
+    return;
+  }
+ 
+  // 支出オブジェクトを作成
+  const newExpense = {
+    id: Date.now(),   // ミリ秒タイムスタンプ → 実質一意
+    name,             // name: name の省略記法
+    amount,
+    category,
+    date,
+  };
+ 
+  expenses.push(newExpense);
+  clearForm();
+  showError('');    // エラーをクリア
+  render();         // 画面を更新
+}
+ 
+function showError(msg) {
+  errorMsg.textContent = msg;
+}
+ 
+function clearForm() {
+  expName.value   = '';
+  expAmount.value = '';
+  setDefaultDate();
+}
+-----------------------
+
+
+
+✅  4.3　エントリー配列の管理
+
+
+👉  追加（push）
+-----------------------
+// 4.2 で実装済み
+expenses.push(newExpense);
+-----------------------
+
+
+👉  削除（filter）
+-----------------------
+function deleteExpense(id) {
+  // 該当IDを除いた新しい配列を作り、expenses を上書き
+  expenses = expenses.filter(e => e.id !== id);
+  render();
+}
+-----------------------
+
+
+👉  フィルタリング（フィルター状態の管理）
+-----------------------
+// フィルター状態に応じて表示する支出を絞り込む
+function getFilteredExpenses() {
+  if (currentFilter === 'all') {
+    return expenses;
+  }
+  return expenses.filter(e => e.category === currentFilter);
+}
+-----------------------
+
+
+👉  フィルターボタンのイベント設定
+-----------------------
+const filterBar = document.querySelector('.filter-bar');
+ 
+filterBar.addEventListener('click', (event) => {
+  const btn = event.target.closest('.filter-btn');
+  if (!btn) return;   // ボタン以外のクリックは無視
+ 
+  currentFilter = btn.dataset.filter;
+ 
+  // アクティブクラスを移動する
+  document.querySelectorAll('.filter-btn').forEach(b => {
+    b.classList.remove('active');
+  });
+  btn.classList.add('active');
+ 
+  render();
+});
+-----------------------
+
+
+
+✅  4.4　リストの動的レンダリング
+
+
+👉  renderList 関数を作る
+-----------------------
+function renderList() {
+  const filtered = getFilteredExpenses();
+ 
+  // リストカウントを更新
+  listCount.textContent = `（${filtered.length}件）`;
+ 
+  // リストをクリア
+  expenseList.innerHTML = '';
+ 
+  // 支出がない場合のメッセージ
+  if (filtered.length === 0) {
+    expenseList.innerHTML = '<li class="empty-msg">支出がありません</li>';
+    return;
+  }
+ 
+  // 新しい順（降順）にソートして描画
+  const sorted = [...filtered].sort((a, b) => b.id - a.id);
+ 
+  sorted.forEach(expense => {
+    const li = document.createElement('li');
+    li.className = 'expense-item';
+ 
+    li.innerHTML = `
+      <div class="expense-left">
+        <span class="cat-badge cat-${expense.category}">${expense.category}</span>
+        <div class="expense-info">
+          <span class="expense-name">${expense.name}</span>
+          <span class="expense-date">${formatDate(expense.date)}</span>
+        </div>
+      </div>
+      <div class="expense-right">
+        <span class="expense-amount">${expense.amount.toLocaleString()}円</span>
+        <button class="del-btn" data-id="${expense.id}">削除</button>
+      </div>
+    `;
+ 
+    expenseList.appendChild(li);
+  });
+}
+-----------------------
+
+
+👉  日付をわかりやすく整形する
+-----------------------
+function formatDate(dateStr) {
+  const d = new Date(dateStr);
+  const m = d.getMonth() + 1;   // getMonth() は 0始まり
+  const day = d.getDate();
+  return `${m}月${day}日`;
+}
+ 
+// 使用例
+formatDate('2025-06-01');  // → '6月1日'
+formatDate('2025-12-25'); // → '12月25日'
+-----------------------
+
+
+👉  削除ボタンのイベント委任
+-----------------------
+expenseList.addEventListener('click', (event) => {
+  const btn = event.target.closest('.del-btn');
+  if (!btn) return;
+ 
+  const id = Number(btn.dataset.id);
+  deleteExpense(id);
+});
+-----------------------
+
+
+
+✅  4.5　reduce()による合計計算
+
+
+👉  reduce() を使って合計を求める
+-----------------------
+function calcTotal(expenseArray) {
+  return expenseArray.reduce((acc, expense) => acc + expense.amount, 0);
+}
+-----------------------
+
+
+👉  処理の流れを1ステップずつ追ってみましょう：
+-----------------------
+// expenses に3件のデータがある場合
+// [{ amount: 1500 }, { amount: 800 }, { amount: 3000 }]
+ 
+// ステップ1: acc=0,      expense.amount=1500 → acc=1500
+// ステップ2: acc=1500,   expense.amount=800  → acc=2300
+// ステップ3: acc=2300,   expense.amount=3000 → acc=5300
+// 最終結果: 5300
+-----------------------
+
+
+👉  カテゴリ別の合計を求める
+-----------------------
+function calcByCategory(expenseArray) {
+  return expenseArray.reduce((acc, expense) => {
+    const { category, amount } = expense;
+ 
+    // カテゴリのキーがまだない場合は 0 で初期化
+    if (acc[category] === undefined) {
+      acc[category] = 0;
+    }
+ 
+    acc[category] += amount;
+    return acc;
+  }, {});  // ← 初期値は空オブジェクト
+}
+ 
+// 使用例
+const result = calcByCategory(expenses);
+// → { 食費: 3700, 交通費: 1320, 娯楽費: 5000 }
+-----------------------
+
+
+👉  合計金額を画面に表示する
+-----------------------
+function renderTotal() {
+  const total = calcTotal(expenses);   // フィルターに関係なく全件で計算
+  totalAmount.textContent = total.toLocaleString() + '円';
+}
+-----------------------
+
+
+
+✅  4.6　エントリーの削除とフィルタリング
+
+
+👉  render() 関数でまとめて再描画する
+-----------------------
+// すべての描画処理をこの1関数にまとめる
+function render() {
+  renderList();     // リスト描画
+  renderTotal();    // 合計金額更新
+  renderBars();     // カテゴリ別バー更新（4.7で実装）
+}
+-----------------------
+
+
+👉  addBtn のイベントリスナーを登録する
+-----------------------
+addBtn.addEventListener('click', addExpense);
+ 
+// Enterキーでも追加できるようにする（UX改善）
+expAmount.addEventListener('keydown', (event) => {
+  if (event.key === 'Enter') addExpense();
+});
+-----------------------
+
+
+
+✅  4.7　カテゴリ別集計表示
+
+
+👉  カテゴリ別割合バーを実装する
+-----------------------
+// カテゴリごとの色を定義
+const CATEGORY_COLORS = {
+  '食費':   '#3498db',   // 青
+  '交通費': '#2ecc71',   // 緑
+  '娯楽費': '#e67e22',   // 橙
+  'その他': '#95a5a6',   // 灰
+};
+ 
+function renderBars() {
+  const total      = calcTotal(expenses);
+  const byCategory = calcByCategory(expenses);
+ 
+  categoryBars.innerHTML = '';
+ 
+  if (total === 0) {
+    categoryBars.innerHTML = '<p class="no-data">データがありません</p>';
+    return;
+  }
+ 
+  // カテゴリ定義の順番通りに表示
+  const categories = ['食費', '交通費', '娯楽費', 'その他'];
+ 
+  categories.forEach(cat => {
+    const amount  = byCategory[cat] || 0;  // そのカテゴリがなければ0
+    if (amount === 0) return;               // 0円のカテゴリはスキップ
+ 
+    const percent = Math.round((amount / total) * 100);
+    const color   = CATEGORY_COLORS[cat];
+ 
+    const div = document.createElement('div');
+    div.className = 'bar-row';
+    div.innerHTML = `
+      <div class="bar-label">
+        <span>${cat}</span>
+        <span>${amount.toLocaleString()}円（${percent}%）</span>
+      </div>
+      <div class="bar-track">
+        <div class="bar-fill"
+             style="width: ${percent}%; background: ${color};">
+        </div>
+      </div>
+    `;
+ 
+    categoryBars.appendChild(div);
+  });
+}
+-----------------------
+
+
+👉  パーセンテージバーのCSS
+-----------------------
+/* style.css に追加 */
+.bar-row { margin-bottom: 16px; }
+.bar-label {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.85rem;
+  margin-bottom: 4px;
+}
+.bar-track {
+  background: #eee;
+  border-radius: 6px;
+  height: 10px;
+  overflow: hidden;
+}
+.bar-fill {
+  height: 100%;
+  border-radius: 6px;
+  transition: width 0.4s ease;  /* ← 幅の変化をアニメーションで見せる */
+}
+-----------------------
+
+
+👉  CSSスタイルの仕上げ
+-----------------------
+/* style.css — メインレイアウト */
+.main-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+ 
+.filter-bar {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+.filter-btn {
+  padding: 6px 16px;
+  border-radius: 20px;
+  background: #eee;
+  color: #333;
+  width: auto;
+  font-size: 0.85rem;
+}
+.filter-btn.active {
+  background: #2e4057;
+  color: #fff;
+}
+ 
+.cat-badge {
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 0.72rem;
+  color: #fff;
+  white-space: nowrap;
+}
+.cat-食費   { background: #3498db; }
+.cat-交通費 { background: #2ecc71; }
+.cat-娯楽費 { background: #e67e22; }
+.cat-その他 { background: #95a5a6; }
+ 
+@media (max-width: 640px) {
+  .main-grid { grid-template-columns: 1fr; }
+}
+-----------------------

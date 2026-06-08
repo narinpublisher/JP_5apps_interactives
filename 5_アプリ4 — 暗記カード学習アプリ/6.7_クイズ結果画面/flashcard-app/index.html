@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  >
+
+  <title>暗記カード学習アプリ</title>
+
+  <link
+    rel="stylesheet"
+    href="style.css"
+  >
+</head>
+
+<body>
+
+  <div class="app-container">
+
+    <header class="header">
+
+      <h1>🗂 暗記カード</h1>
+
+      <div
+        class="counter"
+        id="cardCounter"
+      >
+        1 / 10
+      </div>
+
+      <div class="progress-container">
+        <div
+          class="progress-bar"
+          id="progressBar"
+        ></div>
+      </div>
+
+      <div
+        class="progress-text"
+        id="progressText"
+      >
+        0%
+      </div>
+
+      <div class="score-board">
+
+        <div>
+          ✅ 正解:
+          <span id="scoreCorrect">0</span>
+        </div>
+
+        <div>
+          ❌ もう一度:
+          <span id="scoreIncorrect">0</span>
+        </div>
+
+      </div>
+
+    </header>
+
+    <!-- クイズ画面 -->
+
+    <div id="quizArea">
+
+      <div class="card-scene">
+
+        <div
+          class="flashcard"
+          id="flashcard"
+        >
+
+          <div class="card-face card-front">
+
+            <div
+              class="category-tag"
+              id="cardCategory"
+            ></div>
+
+            <h2 id="cardFront"></h2>
+
+            <p class="tap-hint">
+              タップしてめくる
+            </p>
+
+          </div>
+
+          <div class="card-face card-back">
+
+            <h2 id="cardBack"></h2>
+
+            <p id="cardExample"></p>
+
+          </div>
+
+        </div>
+
+      </div>
+
+      <div
+        class="answer-buttons hidden"
+        id="answerButtons"
+      >
+
+        <button
+          id="incorrectBtn"
+          class="incorrect-btn"
+        >
+          ❌ もう一度
+        </button>
+
+        <button
+          id="correctBtn"
+          class="correct-btn"
+        >
+          ✅ わかった
+        </button>
+
+      </div>
+
+      <div class="button-group">
+
+        <button id="prevBtn">
+          ◀ 前へ
+        </button>
+
+        <button id="flipBtn">
+          🔄 めくる
+        </button>
+
+        <button id="nextBtn">
+          次へ ▶
+        </button>
+
+      </div>
+
+    </div>
+
+    <!-- 結果画面 -->
+
+    <div
+      id="resultArea"
+      class="hidden result-area"
+    >
+
+      <h2
+        id="resultMessage"
+        class="result-message"
+      ></h2>
+
+      <p
+        id="resultPercent"
+        class="result-percent"
+      ></p>
+
+      <p id="resultCorrect"></p>
+
+      <p id="resultIncorrect"></p>
+
+      <button id="restartBtn">
+        🔄 もう一度挑戦
+      </button>
+
+    </div>
+
+  </div>
+
+  <script src="app.js"></script>
+
+</body>
+</html>

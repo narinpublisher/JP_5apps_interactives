@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  />
+
+  <title>暗記カード学習アプリ</title>
+
+  <link
+    rel="stylesheet"
+    href="style.css"
+  />
+</head>
+
+<body>
+
+  <div class="app-container">
+
+    <!-- ヘッダー -->
+    <header class="header">
+
+      <h1>📘 暗記カード学習アプリ</h1>
+
+      <div
+        class="counter"
+        id="cardCounter"
+      >
+        1 / 10
+      </div>
+
+      <!-- プログレスバー -->
+      <div class="progress-container">
+        <div
+          class="progress-bar"
+          id="progressBar"
+        ></div>
+      </div>
+
+      <div
+        class="progress-text"
+        id="progressText"
+      >
+        0%
+      </div>
+
+      <!-- スコア -->
+      <div class="score-board">
+
+        <div>
+          ✅ 正解:
+          <span id="scoreCorrect">0</span>
+        </div>
+
+        <div>
+          ❌ もう一度:
+          <span id="scoreIncorrect">0</span>
+        </div>
+
+      </div>
+
+    </header>
+
+    <!-- カード -->
+    <div class="card-scene">
+
+      <div
+        class="flashcard"
+        id="flashcard"
+      >
+
+        <!-- 表面 -->
+        <div class="card-face card-front">
+
+          <div
+            class="category-tag"
+            id="cardCategory"
+          >
+            動詞
+          </div>
+
+          <h2 id="cardFront">
+            implement
+          </h2>
+
+        </div>
+
+        <!-- 裏面 -->
+        <div class="card-face card-back">
+
+          <h2 id="cardBack">
+            実装する
+          </h2>
+
+          <p id="cardExample">
+            We need to implement this feature.
+          </p>
+
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- ボタン -->
+    <div class="button-group">
+
+      <button id="prevBtn">
+        ◀ 前へ
+      </button>
+
+      <button id="flipBtn">
+        🔄 めくる
+      </button>
+
+      <button id="nextBtn">
+        次へ ▶
+      </button>
+
+    </div>
+
+    <!-- 正解 / 不正解 -->
+    <div
+      class="answer-buttons hidden"
+      id="answerButtons"
+    >
+
+      <button
+        class="correct-btn"
+        id="correctBtn"
+      >
+        ✅ わかった
+      </button>
+
+      <button
+        class="incorrect-btn"
+        id="incorrectBtn"
+      >
+        ❌ もう一度
+      </button>
+
+    </div>
+
+  </div>
+
+  <script src="app.js"></script>
+
+</body>
+</html>

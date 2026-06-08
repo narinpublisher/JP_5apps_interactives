@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>暗記カード学習アプリ</title>
+
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <div class="app">
+
+    <h1>📘 暗記カード学習アプリ</h1>
+
+    <div class="status-bar">
+
+      <p>
+        カード:
+        <span id="cardNum">1</span>
+        /
+        <span id="totalCards">0</span>
+      </p>
+
+      <p>
+        正解:
+        <span id="correctCount">0</span>
+      </p>
+
+      <p>
+        不正解:
+        <span id="incorrectCount">0</span>
+      </p>
+
+    </div>
+
+    <div class="card">
+
+      <p id="cardFront">
+        Loading...
+      </p>
+
+    </div>
+
+    <button id="nextBtn">
+      次へ
+    </button>
+
+  </div>
+
+  <script src="app.js"></script>
+
+</body>
+</html>

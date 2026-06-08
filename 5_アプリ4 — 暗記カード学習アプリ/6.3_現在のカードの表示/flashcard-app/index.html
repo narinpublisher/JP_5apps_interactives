@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  />
+
+  <title>暗記カード学習アプリ</title>
+
+  <link
+    rel="stylesheet"
+    href="style.css"
+  />
+</head>
+
+<body>
+
+  <div class="container">
+
+    <h1>
+      📘 暗記カード学習アプリ
+    </h1>
+
+    <!-- カウンター -->
+    <div class="status">
+
+      <p id="cardCounter">
+        カード: 1 / 3
+      </p>
+
+      <p>
+        正解:
+        <span id="correctCount">0</span>
+      </p>
+
+      <p>
+        不正解:
+        <span id="incorrectCount">0</span>
+      </p>
+
+    </div>
+
+
+    <!-- カード -->
+    <div
+      class="flashcard"
+      id="flashcard"
+    >
+
+      <div
+        class="card-inner"
+        id="cardInner"
+      >
+
+        <!-- 表面 -->
+        <div class="card-front">
+
+          <div
+            id="cardFront"
+            class="card-word"
+          >
+            implement
+          </div>
+
+          <div
+            id="cardCategory"
+            class="category-tag"
+          >
+            動詞
+          </div>
+
+        </div>
+
+        <!-- 裏面 -->
+        <div class="card-back">
+
+          <div
+            id="cardBack"
+            class="card-meaning"
+          >
+            実装する
+          </div>
+
+          <p
+            id="cardExample"
+            class="example"
+          >
+            We need to implement this feature.
+          </p>
+
+        </div>
+
+      </div>
+
+    </div>
+
+
+    <!-- 操作ボタン -->
+    <div class="controls">
+
+      <button id="flipBtn">
+        回答を見る
+      </button>
+
+      <div class="nav-buttons">
+
+        <button id="prevBtn">
+          ◀ 前へ
+        </button>
+
+        <button id="nextBtn">
+          次へ ▶
+        </button>
+
+      </div>
+
+    </div>
+
+  </div>
+
+  <script src="app.js"></script>
+
+</body>
+</html>
